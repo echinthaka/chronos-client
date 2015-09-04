@@ -9,7 +9,7 @@ import org.joda.time.format.DateTimeFormatter
  */
 package object client {
   val DEFAULT_CHRONOS_CHARSET = Charset.forName("UTF-8")
-  val DEFAULT_CHRONOS_PORT = 80
+  val DEFAULT_CHRONOS_PORT = 10000
   val DEFAULT_CHRONOS_SECURE = false
 
 

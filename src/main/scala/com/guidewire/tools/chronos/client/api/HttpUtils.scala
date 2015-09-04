@@ -124,12 +124,14 @@ object HttpUtils {
    * @return instance of [[scala.concurrent.Future]] whose promise is fulfilled upon receipt of the server response
    */
   def httpPostAsJson[TObject, TResult](obj: TObject, connection: Connection)(endpoint: Connection => String)(resultProcessor: (Int, Array[Byte]) => scalaz.Validation[Error, TResult])(implicit writer: Writes[TObject], executor: ExecutionContext): Future[scalaz.Validation[Error, TResult]] = {
+    val json: String = Json.toJson(obj).toString()
+    println(json)
     val POST =
       url(endpoint(connection))
         .POST
         .addHeader("Content-Type", "application/json")
         .addHeader("Accept", "application/json")
-        .setBody(Json.toJson(obj).toString().getBytes(DEFAULT_CHRONOS_CHARSET))
+        .setBody(json.getBytes(DEFAULT_CHRONOS_CHARSET))
 
     def processResponse(response: Response) = {
       val status_code = response.getStatusCode

@@ -1,21 +1,17 @@
 package com.guidewire.tools.chronos.client.api.v2
 
-import scalaz._
-import scala.concurrent.{ExecutionContext, Future}
-
-import play.api.libs.json._
-
-import org.joda.time._
-import org.joda.time.format.{ISOPeriodFormat, ISODateTimeFormat}
-
 import java.lang.{Iterable => JavaIterable}
 import java.net.URI
 
 import com.guidewire.tools.chronos.client._
-import com.guidewire.tools.chronos.client.api._
+import org.joda.time._
+import org.joda.time.format.{ISODateTimeFormat, ISOPeriodFormat}
+import play.api.libs.json._
+
+import scala.concurrent.{ExecutionContext, Future}
+import scalaz._
 
 sealed case class Schedule(recurrences: Long, starting: ReadableDateTime, period: ReadablePeriod) {
-  import Schedule._
 
   require(recurrences >= -1L, s"Recurrences must be infinite (-1), 0 (none), or any number above that")
   require(starting ne null, s"Missing the starting date/time")
@@ -61,24 +57,25 @@ object Schedule {
 sealed case class Job(
     name                  : String
   , command               : String
-  , epsilon               : ReadablePeriod      = Minutes.minutes(5).toPeriod
-  , successCount          : Long                = 0L
-  , errorCount            : Long                = 0L
-  , executor              : String              = ""
-  , executorFlags         : String              = ""
-  , retries               : Int                 = 2
-  , owner                 : String              = ""
-  , lastSuccess           : OptionalDateTime    = "".toOptionalDateTime
-  , lastError             : OptionalDateTime    = "".toOptionalDateTime
-  , async                 : Boolean             = false
-  , cpus                  : FrequencyUnit       = 0.0D.asMHz
-  , disk                  : DataUnit            = 0.asMB
-  , mem                   : DataUnit            = 0.asMB
-  , disabled              : Boolean             = false
-  , uris                  : Seq[URI]            = Seq()
-  , errorsSinceLastSuccess: Option[Long]        = Some(0L)
-  , parents               : Option[Set[String]] = None
-  , schedule              : Option[Schedule]    = None
+  , epsilon               : ReadablePeriod        = Minutes.minutes(5).toPeriod
+  , successCount          : Long                  = 0L
+  , errorCount            : Long                  = 0L
+  , executor              : String                = ""
+  , executorFlags         : String                = ""
+  , retries               : Int                   = 2
+  , owner                 : String                = ""
+  , lastSuccess           : OptionalDateTime      = "".toOptionalDateTime
+  , lastError             : OptionalDateTime      = "".toOptionalDateTime
+  , async                 : Boolean               = false
+  , cpus                  : FrequencyUnit         = 0.0D.asMHz
+  , disk                  : DataUnit              = 0.asMB
+  , mem                   : DataUnit              = 0.asMB
+  , disabled              : Boolean               = false
+  , uris                  : Seq[URI]              = Seq()
+  , errorsSinceLastSuccess: Option[Long]          = Some(0L)
+  , parents               : Option[Set[String]]   = None
+  , schedule              : Option[Schedule]      = None
+  , container             : Option[Container]     = None
 ) {
   def isScheduled: Boolean = schedule.isDefined && parents.isEmpty
   def isDependent: Boolean = parents.isDefined && schedule.isEmpty
@@ -113,8 +110,7 @@ sealed case class TaskCompleted(
  *
  */
 object Scheduler {
-  import JsonUtils._
-  import HttpUtils._
+  import com.guidewire.tools.chronos.client.api.HttpUtils._
 
   object jobs {
     /**
